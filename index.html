@@ -3,260 +3,256 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>HTML5 Opener — Stable</title>
+  <title>HTML5 Opener</title>
   <style>
-    :root{
-      --bg:#ffffff; --panel:#f5f5f5; --text:#111111; --muted:#6b6b6b;
-      --border:#e0e0e0; --primary:#0b5cff; --btn-bg:#ffffff; --btn-border:#d0d0d0;
-      --shadow: 0 6px 18px rgba(11,92,255,0.06);
+    :root {
+      --bg: #ffffff;
+      --text: #111111;
+      --muted: #555555;
+      --panel: #f5f5f5;
+      --border: #d8d8d8;
+      --primary: #0b5cff;
     }
-    .dark {
-      --bg:#0b1220; --panel:#0f1724; --text:#e6eef8; --muted:#9aa7c7;
-      --border:#213042; --primary:#3b82f6; --btn-bg:#0d1624; --btn-border:#1f2b3b;
-      --shadow: 0 8px 30px rgba(0,0,0,0.6);
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
-    *{box-sizing:border-box}
-    html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial}
-    header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:var(--primary);color:#fff}
-    header h1{font-size:16px;margin:0}
-    .icon-btn{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.06);cursor:pointer}
-    main{display:flex;gap:20px;padding:20px;align-items:flex-start}
-    .left{width:440px;max-width:100%;display:flex;flex-direction:column;gap:12px}
-    .section-label{font-weight:700;margin-bottom:6px}
-    .muted{color:var(--muted);font-size:13px}
-    .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-    input[type="file"]{padding:8px;border-radius:10px;border:1px solid var(--border);background:var(--panel);color:var(--text)}
-    button{padding:10px 14px;border-radius:12px;border:1px solid var(--btn-border);background:var(--btn-bg);color:var(--text);cursor:pointer;font-weight:600;box-shadow:var(--shadow);transition:transform .12s}
-    button:hover{transform:translateY(-3px)}
-    .dropzone{border:2px dashed var(--border);border-radius:12px;padding:18px;text-align:center;color:var(--muted);background:var(--panel);cursor:copy}
-    .dropzone.dragover{background:#eef8ff;border-color:var(--primary)}
-    .previewWrap{flex:1;min-width:0}
-    .previewBox{border:1px solid var(--border);background:var(--panel);min-height:420px;max-height:420px;overflow:auto;padding:14px;border-radius:14px;white-space:pre-wrap;font-family:Consolas,Menlo,monospace;font-size:13px;color:var(--text);box-shadow:0 6px 16px rgba(2,6,23,0.04)}
-    footer{padding:12px 18px;background:#f3f6ff;color:#333;border-top:1px solid #e8ecff}
-    .modal-overlay{position:fixed;inset:0;background:rgba(2,6,23,0.45);display:none;align-items:center;justify-content:center;z-index:999}
-    .modal-overlay.show{display:flex}
-    .modal{background:var(--panel);border-radius:12px;padding:18px;max-width:420px;width:94%;border:1px solid var(--border);box-shadow:0 20px 50px rgba(2,6,23,0.3)}
-    .switch{width:56px;height:30px;border-radius:30px;background:#cfcfcf;position:relative;cursor:pointer;border:1px solid rgba(0,0,0,0.06);display:inline-block}
-    .switch .knob{position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:white;transition:left .18s}
-    .dark .switch{background:#22405a}
-    .dark .switch .knob{left:29px}
-    .manual-link{margin-left:8px;color:var(--primary);font-weight:600;text-decoration:underline;display:none}
-    @media (max-width:900px){main{flex-direction:column}}
+
+    header {
+      background: var(--primary);
+      color: white;
+      padding: 14px 18px;
+      font-weight: 600;
+    }
+
+    main {
+      flex: 1;
+      padding: 20px;
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+    }
+
+    .left {
+      width: 440px;
+      max-width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .section-label {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    input[type="file"] {
+      padding: 8px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: white;
+    }
+
+    button {
+      padding: 9px 14px;
+      border: 1px solid #cfcfcf;
+      border-radius: 6px;
+      background: white;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .dropzone {
+      border: 2px dashed #888;
+      border-radius: 8px;
+      min-height: 110px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: #444;
+      background: #fafafa;
+      padding: 18px;
+      cursor: copy;
+      user-select: none;
+    }
+
+    .dropzone.dragover {
+      background: #eef4ff;
+      border-color: var(--primary);
+    }
+
+    .previewWrap {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .previewBox {
+      border: 1px solid var(--border);
+      background: white;
+      min-height: 420px;
+      max-height: 420px;
+      overflow: auto;
+      padding: 12px;
+      white-space: pre-wrap;
+      font-family: Consolas, "SFMono-Regular", Menlo, monospace;
+      font-size: 13px;
+      color: #111;
+    }
+
+    footer {
+      background: #f3f6ff;
+      color: #333;
+      border-top: 1px solid #e5e8f0;
+      padding: 12px 18px;
+      font-size: 13px;
+    }
+
+    @media (max-width: 900px) {
+      main {
+        flex-direction: column;
+      }
+      .left {
+        width: 100%;
+        max-width: 100%;
+      }
+    }
   </style>
 </head>
 <body>
-  <header>
-    <h1>HTML5 Opener</h1>
-    <div>
-      <button id="settingsBtn" class="icon-btn" aria-label="Settings">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7z" stroke="white" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33" stroke="white" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </button>
-    </div>
-  </header>
+  <header>HTML5 Opener — upload or drop an .html file and open it</header>
 
   <main>
     <div class="left">
       <div>
         <div class="section-label">Upload HTML file</div>
-        <div class="muted">Choose an .html file or drag &amp; drop it below. Preview is sanitized.</div>
+        <div class="muted">
+          Choose an .html file from your computer or drag &amp; drop it below.
+        </div>
       </div>
 
       <div class="controls">
         <input id="fileInput" type="file" accept=".html,text/html" />
         <button id="openBtn" type="button">Open (current file)</button>
         <button id="openNewBtn" type="button">Open in new tab</button>
-        <a id="manualOpen" class="manual-link" href="#" target="_blank" rel="noopener">Open viewer (manual)</a>
       </div>
 
-      <div id="dropzone" class="dropzone">Or drag &amp; drop an .html file here</div>
+      <div class="dropzone" id="dropzone">Or drag &amp; drop an .html file here</div>
     </div>
 
     <div class="previewWrap">
       <div class="section-label">Preview (sanitized)</div>
-      <div id="preview" class="previewBox" aria-live="polite"></div>
+      <div id="preview" class="previewBox"></div>
     </div>
   </main>
 
-  <footer>Built to open HTML files. The preview is sanitized and only intended to show the structure.</footer>
-
-  <!-- Settings modal -->
-  <div id="modalOverlay" class="modal-overlay" role="dialog" aria-modal="true" aria-hidden="true">
-    <div class="modal" role="document" aria-labelledby="modalTitle">
-      <h3 id="modalTitle">Settings</h3>
-      <div class="muted">Appearance and preferences</div>
-
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;">
-        <div>
-          <div style="font-weight:700">Dark mode</div>
-          <div class="muted" style="margin-top:4px">Toggle the site's dark appearance.</div>
-        </div>
-        <div>
-          <div id="darkSwitch" class="switch" role="button" tabindex="0" aria-pressed="false" aria-label="Toggle dark mode">
-            <div class="knob"></div>
-          </div>
-        </div>
-      </div>
-
-      <div style="display:flex;justify-content:flex-end;margin-top:18px;">
-        <button id="modalClose" type="button">Close</button>
-      </div>
-    </div>
-  </div>
+  <footer>
+    Built to open HTML files. The preview is sanitized and only intended to show the structure.
+  </footer>
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const fileInput = document.getElementById('fileInput');
-      const dropzone = document.getElementById('dropzone');
-      const preview = document.getElementById('preview');
       const openBtn = document.getElementById('openBtn');
       const openNewBtn = document.getElementById('openNewBtn');
-      const manualOpen = document.getElementById('manualOpen');
-
-      const settingsBtn = document.getElementById('settingsBtn');
-      const modalOverlay = document.getElementById('modalOverlay');
-      const modalClose = document.getElementById('modalClose');
-      const darkSwitch = document.getElementById('darkSwitch');
+      const dropzone = document.getElementById('dropzone');
+      const preview = document.getElementById('preview');
 
       let currentContent = '';
-      let lastURL = '';
 
       function previewHTML(raw) {
         try {
-          // remove script blocks for safety in preview
           const safe = (raw || '').replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '<!-- script removed -->');
           preview.textContent = safe;
         } catch (err) {
           preview.textContent = raw || '';
-          console.error(err);
         }
+      }
+
+      function handleLoadedContent(text) {
+        currentContent = text || '';
+        previewHTML(currentContent);
       }
 
       function readFile(file) {
         if (!file) return;
         const reader = new FileReader();
         reader.onload = () => {
-          currentContent = reader.result || '';
-          previewHTML(currentContent);
-          // hide manual link when new file loaded
-          manualOpen.style.display = 'none';
-          // revoke last URL if any
-          try { if (lastURL) URL.revokeObjectURL(lastURL); } catch(e){}
-          lastURL = '';
+          handleLoadedContent(reader.result);
         };
         reader.readAsText(file, 'utf-8');
       }
 
-      fileInput.addEventListener('change', (e) => {
-        const f = e.target.files && e.target.files[0];
-        if (f) readFile(f);
+      fileInput.addEventListener('change', (event) => {
+        const file = event.target.files && event.target.files[0];
+        readFile(file);
       });
 
-      dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
-      dropzone.addEventListener('dragleave', () => { dropzone.classList.remove('dragover'); });
-      dropzone.addEventListener('drop', (e) => {
-        e.preventDefault();
+      dropzone.addEventListener('dragover', (event) => {
+        event.preventDefault();
+        dropzone.classList.add('dragover');
+      });
+
+      dropzone.addEventListener('dragleave', () => {
         dropzone.classList.remove('dragover');
-        const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
-        if (f) readFile(f);
+      });
+
+      dropzone.addEventListener('drop', (event) => {
+        event.preventDefault();
+        dropzone.classList.remove('dragover');
+        const file = event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0];
+        readFile(file);
       });
 
       openBtn.addEventListener('click', () => {
-        if (!currentContent) { alert('Please upload an HTML file first.'); return; }
-        try {
-          const blob = new Blob([currentContent], { type: 'text/html' });
-          const url = URL.createObjectURL(blob);
-          // navigate same tab
-          window.location.href = url;
-        } catch (err) {
-          console.error(err);
-          alert('Failed to open file: ' + err);
+        if (!currentContent) {
+          alert('Please upload an HTML file first.');
+          return;
         }
-      });
 
-      function openURLWithFallback(url) {
-        // try anchor click
-        try {
-          const a = document.createElement('a');
-          a.href = url;
-          a.target = '_blank';
-          a.rel = 'noopener';
-          a.style.display = 'none';
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          return true;
-        } catch (err) {
-          console.warn('anchor failed', err);
-        }
-        // fallback to window.open
-        try {
-          const w = window.open(url, '_blank', 'noopener');
-          return !!w;
-        } catch (err) {
-          console.error('window.open failed', err);
-          return false;
-        }
-      }
+        const blob = new Blob([currentContent], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        window.location.href = url;
+      });
 
       openNewBtn.addEventListener('click', () => {
-        if (!currentContent) { alert('Please upload an HTML file first.'); return; }
-        try {
-          const blob = new Blob([currentContent], { type: 'text/html' });
-          const url = URL.createObjectURL(blob);
-          lastURL = url; // store to revoke later
-          const ok = openURLWithFallback(url);
-          if (!ok) {
-            manualOpen.href = url;
-            manualOpen.style.display = 'inline-block';
-            alert('Automatic opening may be blocked. Use the "Open viewer (manual)" link.');
-          } else {
-            manualOpen.style.display = 'none';
-          }
-        } catch (err) {
-          console.error(err);
-          alert('Failed to open in new tab: ' + err);
+        if (!currentContent) {
+          alert('Please upload an HTML file first.');
+          return;
+        }
+
+        const blob = new Blob([currentContent], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+
+        const newWindow = window.open(url, '_blank');
+        if (!newWindow) {
+          alert('Popup blocked. Allow popups for this page and try again.');
         }
       });
 
-      manualOpen.addEventListener('click', () => {
-        setTimeout(() => { manualOpen.style.display = 'none'; }, 500);
-      });
-
-      // --- settings / dark mode ---
-      const DARK_KEY = 'htmlopener-dark';
-
-      function setDark(on) {
-        if (on) document.documentElement.classList.add('dark');
-        else document.documentElement.classList.remove('dark');
-        try { localStorage.setItem(DARK_KEY, on ? '1' : '0'); } catch(e){}
-        darkSwitch.setAttribute('aria-pressed', on ? 'true' : 'false');
-      }
-
-      // initialize
-      try {
-        const saved = localStorage.getItem(DARK_KEY);
-        setDark(saved === '1');
-      } catch (e) { setDark(false); }
-
-      function openModal() {
-        modalOverlay.classList.add('show'); modalOverlay.setAttribute('aria-hidden','false');
-        darkSwitch.focus();
-      }
-      function closeModal() {
-        modalOverlay.classList.remove('show'); modalOverlay.setAttribute('aria-hidden','true');
-        settingsBtn.focus();
-      }
-
-      settingsBtn.addEventListener('click', openModal);
-      modalClose.addEventListener('click', closeModal);
-      modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) closeModal(); });
-      document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modalOverlay.classList.contains('show')) closeModal(); });
-
-      function toggleDark() { setDark(!document.documentElement.classList.contains('dark')); }
-      darkSwitch.addEventListener('click', toggleDark);
-      darkSwitch.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleDark(); } });
-
-      console.log('HTML5 Opener — simplified stable version initialized');
+      console.log('HTML5 Opener initialized');
     });
   </script>
 </body>
