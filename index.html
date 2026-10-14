@@ -3,65 +3,182 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>HTML5 Opener (fixed)</title>
+  <title>HTML5 Opener</title>
   <style>
-    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0; display:flex; flex-direction:column; min-height:100vh; background:#fff; color:#111; }
-    header { padding:12px 16px; background:#0b5cff; color:white; }
-    main { padding:16px; display:flex; gap:16px; align-items:flex-start; flex:1; }
-    .left { width:420px; max-width:40%; min-width:300px; display:flex; flex-direction:column; gap:8px; }
-    .controls { display:flex; gap:8px; align-items:center; margin-top:6px; }
-    .dropzone { border:2px dashed #888; border-radius:6px; padding:12px; text-align:center; color:#444; background:#fafafa; cursor:copy; margin-top:8px; }
-    button { padding:8px 12px; border-radius:6px; border:1px solid #ccc; background:white; cursor:pointer; }
-    .small { font-size:13px; color:#555; }
-    #manualLink { display:inline-block; margin-left:8px; color:#0b5cff; text-decoration:underline; }
-    footer { padding:10px 16px; font-size:13px; color:#444; background:#f3f6ff; margin-top:auto; }
-    #preview { margin-top:8px;border:1px solid #ddd;padding:8px;height:420px;overflow:auto;background:white; white-space:pre-wrap; color:#111; }
-    @media (max-width:900px){ main { flex-direction:column; } .left{ max-width:100%; width:auto; } }
+    :root {
+      --bg: #ffffff;
+      --text: #111111;
+      --muted: #555555;
+      --panel: #f5f5f5;
+      --border: #d8d8d8;
+      --primary: #0b5cff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: var(--primary);
+      color: white;
+      padding: 14px 18px;
+      font-weight: 600;
+    }
+
+    main {
+      flex: 1;
+      padding: 20px;
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+    }
+
+    .left {
+      width: 440px;
+      max-width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .section-label {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    input[type="file"] {
+      padding: 8px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: white;
+    }
+
+    button {
+      padding: 9px 14px;
+      border: 1px solid #cfcfcf;
+      border-radius: 6px;
+      background: white;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .dropzone {
+      border: 2px dashed #888;
+      border-radius: 8px;
+      min-height: 110px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: #444;
+      background: #fafafa;
+      padding: 18px;
+      cursor: copy;
+      user-select: none;
+    }
+
+    .dropzone.dragover {
+      background: #eef4ff;
+      border-color: var(--primary);
+    }
+
+    .previewWrap {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .previewBox {
+      border: 1px solid var(--border);
+      background: white;
+      min-height: 420px;
+      max-height: 420px;
+      overflow: auto;
+      padding: 12px;
+      white-space: pre-wrap;
+      font-family: Consolas, "SFMono-Regular", Menlo, monospace;
+      font-size: 13px;
+      color: #111;
+    }
+
+    footer {
+      background: #f3f6ff;
+      color: #333;
+      border-top: 1px solid #e5e8f0;
+      padding: 12px 18px;
+      font-size: 13px;
+    }
+
+    @media (max-width: 900px) {
+      main {
+        flex-direction: column;
+      }
+      .left {
+        width: 100%;
+        max-width: 100%;
+      }
+    }
   </style>
 </head>
 <body>
-  <header>
-    HTML5 Opener — upload an HTML file and use the buttons to open it in the same tab or a new tab (viewer includes fullscreen).
-  </header>
+  <header>HTML5 Opener — upload or drop an .html file and open it</header>
 
   <main>
     <div class="left">
       <div>
-        <strong>Upload HTML file</strong>
-        <div class="small">Choose an .html file or drag & drop it below. The preview is sanitized (no scripts run in preview).</div>
+        <div class="section-label">Upload HTML file</div>
+        <div class="muted">
+          Choose an .html file from your computer or drag &amp; drop it below.
+        </div>
       </div>
 
       <div class="controls">
         <input id="fileInput" type="file" accept=".html,text/html" />
         <button id="openBtn" type="button">Open (current file)</button>
         <button id="openNewBtn" type="button">Open in new tab</button>
-        <a id="manualLink" href="#" target="_blank" rel="noopener" style="display:none">Open viewer (manual)</a>
       </div>
 
-      <div class="dropzone" id="dropzone">Or drag & drop an .html file here</div>
+      <div class="dropzone" id="dropzone">Or drag &amp; drop an .html file here</div>
     </div>
 
-    <div style="flex:1">
-      <strong>Preview (sanitized):</strong>
-      <div id="preview"></div>
-      <div style="margin-top:8px;color:#666;font-size:13px">
-        Note: The inline preview is sanitized and only intended to show the structure; open in a tab to run full HTML (scripts/styles).
-      </div>
+    <div class="previewWrap">
+      <div class="section-label">Preview (sanitized)</div>
+      <div id="preview" class="previewBox"></div>
     </div>
   </main>
 
   <footer>
-    Built to open HTML files and give you a fullscreen button in the opened tab. Fullscreen must be triggered by a user gesture in the opened tab.
+    Built to open HTML files. The preview is sanitized and only intended to show the structure.
   </footer>
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const fileInput = document.getElementById('fileInput');
-      const dropzone = document.getElementById('dropzone');
-      const preview = document.getElementById('preview');
       const openBtn = document.getElementById('openBtn');
       const openNewBtn = document.getElementById('openNewBtn');
-      const manualLink = document.getElementById('manualLink');
+      const dropzone = document.getElementById('dropzone');
+      const preview = document.getElementById('preview');
 
       let currentContent = '';
 
@@ -69,140 +186,73 @@
         try {
           const safe = (raw || '').replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '<!-- script removed -->');
           preview.textContent = safe;
-        } catch (e) {
+        } catch (err) {
           preview.textContent = raw || '';
         }
       }
 
-      function openURLInNewTab(url) {
-        try {
-          const a = document.createElement('a');
-          a.href = url;
-          a.target = '_blank';
-          a.rel = 'noopener';
-          a.style.display = 'none';
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          return true;
-        } catch (err) {}
-        try {
-          const w = window.open(url, '_blank', 'noopener');
-          return !!w;
-        } catch (err) {
-          return false;
-        }
-      }
-
-      function buildViewerBlob(htmlText) {
-        const contentBlob = new Blob([htmlText], { type: 'text/html' });
-        const contentURL = URL.createObjectURL(contentBlob);
-
-        const parts = [
-          '<!doctype html>',
-          '<html>',
-          '<head>',
-          '  <meta charset="utf-8">',
-          '  <meta name="viewport" content="width=device-width,initial-scale=1">',
-          '  <title>HTML Viewer</title>',
-          '  <style>',
-          '    html,body{height:100%;margin:0;font-family:system-ui, -apple-system, "Segoe UI", Roboto, sans-serif}',
-          '    .top{display:flex;gap:8px;padding:8px;background:#0f62fe;color:white;align-items:center}',
-          '    button{padding:8px 12px;border-radius:6px;border:none;background:white;color:#0f62fe;cursor:pointer}',
-          '    iframe{width:100%;height:calc(100% - 56px);border:none;display:block}',
-          '  </style>',
-          '</head>',
-          '<body>',
-          '  <div class="top">',
-          '    <div style="flex:1">Opened HTML — use the button to go fullscreen</div>',
-          '    <button id="fsBtn">Go fullscreen</button>',
-          '    <button id="openSource" style="background:rgba(255,255,255,0.9);margin-left:4px;color:#0f62fe">Open source in tab</button>',
-          '  </div>',
-          `  <iframe id="viewer" src="${contentURL}" allowfullscreen></iframe>`,
-          '  <script>',
-          '    (function(){',
-          '      const iframe = document.getElementById("viewer");',
-          '      document.getElementById("fsBtn").addEventListener("click", async () => {',
-          '        try {',
-          '          if (iframe.requestFullscreen) { await iframe.requestFullscreen(); }',
-          '          else if (iframe.webkitRequestFullscreen) { iframe.webkitRequestFullscreen(); }',
-          '          else { await document.documentElement.requestFullscreen(); }',
-          '        } catch (err) { alert("Fullscreen failed: " + err); }',
-          '      });',
-          '      document.getElementById("openSource").addEventListener("click", () => {',
-          `        window.open("${contentURL}", "_blank");`,
-          '      });',
-          '      window.addEventListener("unload", () => { try { URL.revokeObjectURL("' + contentURL + '"); } catch(e) {} });',
-          '    })();'
-        ];
-
-        parts.push('</scr' + 'ipt>');
-        parts.push('</body>');
-        parts.push('</html>');
-
-        const viewerHTML = parts.join('\n');
-        return new Blob([viewerHTML], { type: 'text/html' });
-      }
-
-      function openInNewTabWithFullscreen(htmlText) {
-        if (!htmlText) { alert('No content loaded'); return; }
-        const viewerBlob = buildViewerBlob(htmlText);
-        const viewerURL = URL.createObjectURL(viewerBlob);
-
-        manualLink.href = viewerURL;
-        manualLink.style.display = 'inline-block';
-
-        const opened = openURLInNewTab(viewerURL);
-        if (!opened) {
-          alert('Automatic opening may be blocked by your browser. Use the "Open viewer (manual)" link.');
-        }
-      }
-
-      function openInSameTab(htmlText) {
-        if (!htmlText) { alert('No content loaded'); return; }
-        const blob = new Blob([htmlText], { type: 'text/html' });
-        const url = URL.createObjectURL(blob);
-        window.location.href = url;
-      }
-
-      function handleFileContent(text) {
+      function handleLoadedContent(text) {
         currentContent = text || '';
         previewHTML(currentContent);
-        manualLink.style.display = 'none';
       }
 
-      fileInput.addEventListener('change', (e) => {
-        const f = e.target.files && e.target.files[0];
-        if (!f) return;
+      function readFile(file) {
+        if (!file) return;
         const reader = new FileReader();
-        reader.onload = () => { handleFileContent(reader.result); };
-        reader.readAsText(f, 'utf-8');
+        reader.onload = () => {
+          handleLoadedContent(reader.result);
+        };
+        reader.readAsText(file, 'utf-8');
+      }
+
+      fileInput.addEventListener('change', (event) => {
+        const file = event.target.files && event.target.files[0];
+        readFile(file);
       });
 
-      dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.style.background = '#eef'; });
-      dropzone.addEventListener('dragleave', () => { dropzone.style.background = '#fafafa'; });
-      dropzone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dropzone.style.background = '#fafafa';
-        const f = e.dataTransfer.files && e.dataTransfer.files[0];
-        if (!f) return;
-        const reader = new FileReader();
-        reader.onload = () => { handleFileContent(reader.result); };
-        reader.readAsText(f, 'utf-8');
+      dropzone.addEventListener('dragover', (event) => {
+        event.preventDefault();
+        dropzone.classList.add('dragover');
+      });
+
+      dropzone.addEventListener('dragleave', () => {
+        dropzone.classList.remove('dragover');
+      });
+
+      dropzone.addEventListener('drop', (event) => {
+        event.preventDefault();
+        dropzone.classList.remove('dragover');
+        const file = event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0];
+        readFile(file);
       });
 
       openBtn.addEventListener('click', () => {
-        if (!currentContent) { alert('Please upload an HTML file first.'); return; }
-        openInSameTab(currentContent);
+        if (!currentContent) {
+          alert('Please upload an HTML file first.');
+          return;
+        }
+
+        const blob = new Blob([currentContent], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        window.location.href = url;
       });
 
       openNewBtn.addEventListener('click', () => {
-        if (!currentContent) { alert('Please upload an HTML file first.'); return; }
-        openInNewTabWithFullscreen(currentContent);
+        if (!currentContent) {
+          alert('Please upload an HTML file first.');
+          return;
+        }
+
+        const blob = new Blob([currentContent], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+
+        const newWindow = window.open(url, '_blank');
+        if (!newWindow) {
+          alert('Popup blocked. Allow popups for this page and try again.');
+        }
       });
 
-      manualLink.style.display = 'none';
-      console.log('HTML5 Opener ready');
+      console.log('HTML5 Opener initialized');
     });
   </script>
 </body>
