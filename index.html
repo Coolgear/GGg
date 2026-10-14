@@ -16,7 +16,7 @@
     .small { font-size:13px; color:#555; }
     #manualLink { display:inline-block; margin-left:8px; color:#0b5cff; text-decoration:underline; }
     footer { padding:10px 16px; font-size:13px; color:#444; background:#f3f6ff; margin-top:auto; }
-    #preview { margin-top:8px;border:1px solid #ddd;padding:8px;height:420px;overflow:auto;background:white; white-space:pre-wrap; }
+    #preview { margin-top:8px;border:1px solid #ddd;padding:8px;height:420px;overflow:auto;background:white; white-space:pre-wrap; color:#111; }
     @media (max-width:900px){ main { flex-direction:column; } .left{ max-width:100%; width:auto; } }
   </style>
 </head>
@@ -70,45 +70,37 @@
       // Helper: show sanitized-ish preview (removes scripts)
       function previewHTML(raw) {
         try {
-          const safe = raw.replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '<!-- script removed -->');
+          const safe = (raw || '').replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '<!-- script removed -->');
           preview.innerText = safe;
         } catch (e) {
           preview.innerText = raw || '';
         }
       }
 
-      // Helper to open a URL in a new tab with fallbacks
+      // Try opening a URL in a new tab, with anchor click fallback
       function openURLInNewTab(url) {
         console.log('openURLInNewTab: attempting to open', url);
-        // Try programmatic anchor click first (often allowed)
         try {
           const a = document.createElement('a');
           a.href = url;
           a.target = '_blank';
           a.rel = 'noopener';
-          // Append to DOM so click() will work consistently
           a.style.display = 'none';
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
-          console.log('openURLInNewTab: anchor click attempted');
+          console.log('anchor click attempted');
           return true;
         } catch (err) {
           console.warn('anchor open failed:', err);
         }
-
-        // Fallback to window.open
         try {
           const w = window.open(url, '_blank', 'noopener');
-          if (w) {
-            console.log('openURLInNewTab: window.open succeeded');
-            return true;
-          } else {
-            console.warn('openURLInNewTab: window.open returned null (likely blocked)');
-            return false;
-          }
+          if (w) { console.log('window.open succeeded'); return true; }
+          console.warn('window.open returned null (likely blocked)');
+          return false;
         } catch (err) {
-          console.error('openURLInNewTab: window.open error', err);
+          console.error('window.open error', err);
           return false;
         }
       }
@@ -117,11 +109,10 @@
       function openInNewTabWithFullscreen(htmlText) {
         if (!htmlText) { alert('No content'); return; }
 
-        // Create blob for the user's raw content
         const contentBlob = new Blob([htmlText], { type: 'text/html' });
         const contentURL = URL.createObjectURL(contentBlob);
 
-        // Viewer HTML that embeds the blob inside an iframe and provides a fullscreen button
+        // Escape "</script>" in this string as "<\/script>" so outer script isn't closed
         const viewerHTML = `<!doctype html>
 <html>
 <head>
@@ -163,20 +154,17 @@
       window.open("${contentURL}", '_blank');
     });
 
-    // Revoke the blob when the page unloads to free memory
     window.addEventListener('unload', () => {
       try { URL.revokeObjectURL("${contentURL}"); } catch(e) {}
     });
-  </script>
+  <\/script>
 </body>
 </html>`;
 
         const viewerBlob = new Blob([viewerHTML], { type: 'text/html' });
         const viewerURL = URL.createObjectURL(viewerBlob);
 
-        // Try to open automatically. If that fails, show the manual link.
         const opened = openURLInNewTab(viewerURL);
-        // Put manual link in the UI so user can open or right-click if automatic open failed
         manualLink.href = viewerURL;
         manualLink.style.display = 'inline-block';
 
@@ -185,23 +173,18 @@
         }
       }
 
-      // Open replacing current page
+      // Open in same tab
       function openInSameTab(htmlText) {
         if (!htmlText) { alert('No HTML content to open'); return; }
         const blob = new Blob([htmlText], { type: 'text/html' });
         const url = URL.createObjectURL(blob);
-        // navigate
         window.location.href = url;
       }
 
-      // handle text for preview and optional prompt
-      function handleNewText(text, autoAskOpen) {
+      // Common handler
+      function handleNewText(text) {
         previewHTML(text || '');
-        if (autoAskOpen && text) {
-          // We won't show a modal to keep it simple — the Open in new tab button is provided
-          // For convenience, also reveal manual link to open immediately
-          manualLink.style.display = 'none';
-        }
+        manualLink.style.display = 'none';
       }
 
       // Paste handler
@@ -213,17 +196,17 @@
         const content = html || text;
         if (!content) return;
         pasteArea.value = content;
-        handleNewText(content, true);
+        handleNewText(content);
       });
 
-      // File reading
+      // File reader
       fileInput.addEventListener('change', (e) => {
         const f = e.target.files && e.target.files[0];
         if (!f) return;
         const reader = new FileReader();
         reader.onload = () => {
           pasteArea.value = reader.result;
-          handleNewText(reader.result, true);
+          handleNewText(reader.result);
         };
         reader.readAsText(f, 'utf-8');
       });
@@ -239,7 +222,7 @@
         const reader = new FileReader();
         reader.onload = () => {
           pasteArea.value = reader.result;
-          handleNewText(reader.result, true);
+          handleNewText(reader.result);
         };
         reader.readAsText(f, 'utf-8');
       });
@@ -248,18 +231,15 @@
       openBtn.addEventListener('click', () => {
         const content = pasteArea.value;
         if (!content) { alert('Paste or load an HTML file first.'); return; }
-        console.log('Open (same tab) clicked');
         openInSameTab(content);
       });
 
       openNewBtn.addEventListener('click', () => {
         const content = pasteArea.value;
         if (!content) { alert('Paste or load an HTML file first.'); return; }
-        console.log('Open in new tab clicked');
         openInNewTabWithFullscreen(content);
       });
 
-      // Debug helpers visible in console
       console.log('HTML5 Opener initialized');
     });
   </script>
