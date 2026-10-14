@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>HTML5 Opener</title>
+  <style>
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0; display:flex; flex-direction:column; height:100vh; }
+    header { padding:12px 16px; background:#0b5cff; color:white; }
+    main { padding:16px; flex:1; display:flex; gap:16px; align-items:start; }
+    .left { width:420px; max-width:40%; min-width:300px; display:flex; flex-direction:column; gap:8px; }
+    textarea { width:100%; height:320px; resize:vertical; padding:10px; font-family: monospace; font-size:13px; }
+    .controls { display:flex; gap:8px; }
+    .dropzone { border:2px dashed #888; border-radius:6px; padding:12px; text-align:center; color:#444; background:#fafafa; cursor:copy; }
+    button { padding:8px 12px; border-radius:6px; border:1px solid #ccc; background:white; cursor:pointer; }
+    .modal { position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); background:white; padding:16px; border-radius:8px; box-shadow:0 8px 30px rgba(0,0,0,0.2); display:none; z-index:1000; }
+    .modal.show { display:block; }
+    .modal-buttons { margin-top:12px; display:flex; gap:8px; justify-content:flex-end; }
+    footer { padding:10px 16px; font-size:13px; color:#444; background:#f3f6ff; }
+    @media (max-width:900px){ main { flex-direction:column; } .left{ max-width:100%; width:auto; } }
+  </style>
+</head>
+<body>
+  <header>
+    HTML5 Opener — paste or drop an HTML file, then choose whether to open it in a new tab (with fullscreen).
+  </header>
+
+  <main>
+    <div class="left">
+      <div>
+        <strong>Paste HTML</strong>
+        <div style="font-size:13px;color:#555">Click into the box and paste (Ctrl+V / Cmd+V) an HTML file's markup. After pasting you will be prompted whether to open in a new tab.</div>
+      </div>
+      <textarea id="pasteArea" placeholder="Paste HTML here (or type)"></textarea>
+
+      <div class="controls">
+        <input id="fileInput" type="file" accept=".html,text/html" />
+        <button id="openBtn">Open (current text)</button>
+        <button id="openNewBtn">Open in new tab</button>
+      </div>
+
+      <div style="margin-top:8px;">
+        <div class="dropzone" id="dropzone">Or drag & drop an .html file here</div>
+      </div>
+    </div>
+
+    <div style="flex:1">
+      <strong>Preview (sanitized):</strong>
+      <div id="preview" style="margin-top:8px;border:1px solid #ddd;padding:8px;height:420px;overflow:auto;background:white"></div>
+      <div style="margin-top:8px;color:#666;font-size:13px">
+        Note: The inline preview is sanitized and only intended to show the structure; open in a tab to run full HTML (scripts/styles).
+      </div>
+    </div>
+  </main>
+
+  <div class="modal" id="confirmModal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div id="modalText">Open this HTML in a new tab?</div>
+    <div class="modal-buttons">
+      <button id="modalNo">No</button>
+      <button id="modalYes">Yes — open</button>
+    </div>
+  </div>
+
+  <footer>
+    Built to open HTML files and give you a fullscreen button in the opened tab. Fullscreen must be triggered by a user gesture (the button in the opened tab).
+  </footer>
+
+  <script>
+    // Helper: show sanitized-ish preview (removes scripts)
+    function previewHTML(raw) {
+      try {
+        // Remove script tags for safety in the preview area (naive)
+        const safe = raw.replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '<!-- script removed -->');
+        // Show text so browser doesn't run HTML in the preview pane
+        document.getElementById('preview').innerText = safe;
+      } catch(e) {
+        document.getElementById('preview').innerText = raw;
+      }
+    }
+
+    const pasteArea = document.getElementById('pasteArea');
+    const openBtn = document.getElementById('openBtn');
+    const openNewBtn = document.getElementById('openNewBtn');
+    const fileInput = document.getElementById('fileInput');
+    const dropzone = document.getElementById('dropzone');
+    const confirmModal = document.getElementById('confirmModal');
+    const modalYes = document.getElementById('modalYes');
+    const modalNo = document.getElementById('modalNo');
+    let pendingContent = '';
+
+    function showConfirm(content, onYes, onNo) {
+      pendingContent = content;
+      document.getElementById('modalText').textContent = 'Open this HTML in a new tab?';
+      confirmModal.classList.add('show');
+      confirmModal.setAttribute('aria-hidden','false');
+      const cleanup = () => { confirmModal.classList.remove('show'); confirmModal.setAttribute('aria-hidden','true'); };
+      modalYes.onclick = () => { cleanup(); onYes && onYes(content); };
+      modalNo.onclick = () => { cleanup(); onNo && onNo(); };
+    }
+
+    // Create viewer page that embeds user's HTML in an iframe and provides a fullscreen button.
+    function openInNewTabWithFullscreen(htmlText) {
+      const contentBlob = new Blob([htmlText], { type: 'text/html' });
+      const contentURL = URL.createObjectURL(contentBlob);
+
+      const viewerHTML = `<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>HTML Viewer</title>
+  <style>
+    html,body{height:100%;margin:0;font-family:system-ui, -apple-system, "Segoe UI", Roboto, sans-serif}
+    .top{display:flex;gap:8px;padding:8px;background:#0f62fe;color:white;align-items:center}
+    button{padding:8px 12px;border-radius:6px;border:none;background:white;color:#0f62fe;cursor:pointer}
+    iframe{width:100%;height:calc(100% - 56px);border:none;display:block}
+  </style>
+</head>
+<body>
+  <div class="top">
+    <div style="flex:1">Opened HTML — use the button to go fullscreen</div>
+    <button id="fsBtn">Go fullscreen</button>
+    <button id="openSource" style="background:rgba(255,255,255,0.9);margin-left:4px;color:#0f62fe">Open source in tab</button>
+  </div>
+  <iframe id="viewer" src="${contentURL}" allowfullscreen></iframe>
+
+  <script>
+    const iframe = document.getElementById('viewer');
+    document.getElementById('fsBtn').addEventListener('click', async () => {
+      try {
+        if (iframe.requestFullscreen) {
+          await iframe.requestFullscreen();
+        } else if (iframe.webkitRequestFullscreen) {
+          iframe.webkitRequestFullscreen();
+        } else {
+          await document.documentElement.requestFullscreen();
+        }
+      } catch (err) {
+        alert('Fullscreen failed: ' + err + '\\nSome browsers require the fullscreen request to be triggered directly by a user gesture (this button is one).');
+      }
+    });
+
+    document.getElementById('openSource').addEventListener('click', () => {
+      window.open("${contentURL}", '_blank');
+    });
+
+    window.addEventListener('unload', () => {
+      try { URL.revokeObjectURL("${contentURL}"); } catch(e) {}
+    });
+  </script>
+</body>
+</html>`;
+
+      const viewerBlob = new Blob([viewerHTML], { type: 'text/html' });
+      const viewerURL = URL.createObjectURL(viewerBlob);
+
+      const newWin = window.open(viewerURL, '_blank');
+      if (!newWin) {
+        alert('Popup blocked. Allow popups for this site to open the viewer in a new tab.');
+      }
+    }
+
+    // Open in current tab (replaces current page)
+    function openInSameTab(htmlText) {
+      if (!htmlText) { alert('No HTML content to open'); return; }
+      const blob = new Blob([htmlText], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      window.location.href = url;
+    }
+
+    // Common: process text content (update preview)
+    function handleNewText(text, autoAskOpen) {
+      previewHTML(text || '');
+      if (autoAskOpen && text) {
+        showConfirm(text, (content) => openInNewTabWithFullscreen(content), () => {});
+      }
+    }
+
+    // Paste handler: if clipboard has html or text, capture and ask
+    pasteArea.addEventListener('paste', (ev) => {
+      ev.preventDefault();
+      const cb = ev.clipboardData || window.clipboardData;
+      const html = cb.getData('text/html');
+      const text = cb.getData('text/plain');
+      const content = html || text;
+      if (!content) return;
+      pasteArea.value = content;
+      handleNewText(content, true);
+    });
+
+    // File input handler
+    fileInput.addEventListener('change', (e) => {
+      const f = e.target.files && e.target.files[0];
+      if (!f) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        pasteArea.value = reader.result;
+        handleNewText(reader.result, true);
+      };
+      reader.readAsText(f, 'utf-8');
+    });
+
+    // Drag & drop handlers
+    dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.style.background='#eef'; });
+    dropzone.addEventListener('dragleave', () => { dropzone.style.background='#fafafa'; });
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.style.background = '#fafafa';
+      const f = e.dataTransfer.files && e.dataTransfer.files[0];
+      if (!f) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        pasteArea.value = reader.result;
+        handleNewText(reader.result, true);
+      };
+      reader.readAsText(f, 'utf-8');
+    });
+
+    // Buttons
+    openBtn.addEventListener('click', () => {
+      const content = pasteArea.value;
+      if (!content) { alert('Paste or load an HTML file first.'); return; }
+      openInSameTab(content);
+    });
+
+    openNewBtn.addEventListener('click', () => {
+      const content = pasteArea.value;
+      if (!content) { alert('Paste or load an HTML file first.'); return; }
+      showConfirm(content, (c) => openInNewTabWithFullscreen(c), () => {});
+    });
+  </script>
+</body>
+</html>
